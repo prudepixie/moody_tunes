@@ -1,0 +1,54 @@
+{
+    "name": "moody_tunes",
+    "description": "",
+    "services": [
+        {
+            "type": "abs",
+            "tenantId": "1ec31646-42ea-4a5a-a25a-5c85faa14c51",
+            "subscriptionId": "255b11b6-a5c4-4fe3-ac0b-b12882575905",
+            "resourceGroup": "wendy-bot",
+            "serviceName": "moody_tunes",
+            "name": "moody_tunes",
+            "id": "1",
+            "appId": "3ea07f2e-2bc7-41ee-9312-0da15658e6aa"
+        },
+        {
+            "type": "blob",
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=moodytunesb879;AccountKey=Y6wAg2i5XCFUN8A62TLtTn6arBTH/P5I/5Dgs+KctIZx5/puh/E6KBpfZcDc6jZXx6vt3iaG8bTmlBdcBHyiCA==;",
+            "tenantId": "1ec31646-42ea-4a5a-a25a-5c85faa14c51",
+            "subscriptionId": "255b11b6-a5c4-4fe3-ac0b-b12882575905",
+            "resourceGroup": "wendy-bot",
+            "serviceName": "moodytunesb879",
+            "id": "2"
+        },
+        {
+            "type": "endpoint",
+            "appId": "",
+            "appPassword": "",
+            "endpoint": "http://localhost:3978/api/messages",
+            "name": "development",
+            "id": "3"
+        },
+        {
+            "type": "endpoint",
+            "appId": "3ea07f2e-2bc7-41ee-9312-0da15658e6aa",
+            "appPassword": "z0u/=4B^h*t8WTnXNA2}cD^s2{|4Z0",
+            "endpoint": "https://moodytunes.azurewebsites.net/api/messages",
+            "name": "production",
+            "id": "4"
+        },
+        {
+            "type": "appInsights",
+            "instrumentationKey": "891edd57-8141-477d-94e8-c08e6559a9d8",
+            "applicationId": "613700a8-900c-4a40-bff1-e4be974364f5",
+            "apiKeys": {},
+            "tenantId": "1ec31646-42ea-4a5a-a25a-5c85faa14c51",
+            "subscriptionId": "255b11b6-a5c4-4fe3-ac0b-b12882575905",
+            "resourceGroup": "wendy-bot",
+            "serviceName": "moody_tunes3qb7cu",
+            "id": "5"
+        }
+    ],
+    "padlock": "",
+    "version": "2.0"
+}
