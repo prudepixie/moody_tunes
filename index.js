@@ -4,6 +4,7 @@
 // Import required packages
 const path = require('path');
 const restify = require('restify');
+const { QnAMaker } = require('botbuilder-ai');
 
 // Import required bot services. See https://aka.ms/bot-services to learn more about the different parts of a bot.
 const { BotFrameworkAdapter, ConversationState, MemoryStorage } = require('botbuilder');
@@ -38,6 +39,18 @@ const DEV_ENVIRONMENT = 'development';
 // Define name of the endpoint configuration section from the .bot file
 const BOT_CONFIGURATION = (process.env.NODE_ENV || DEV_ENVIRONMENT);
 
+const qnaServices = [];
+botConfig.services.forEach(s => {
+    if (s.type == 'qna') {
+        const endpoint = {
+            knowledgeBaseId: s.kbId,
+            endpointKey: s.endpointKey,
+            host: s.hostname
+        };
+        const options = {};
+        qnaServices.push(new QnAMaker(endpoint, options));
+    }
+});
 // Get bot endpoint configuration by service name
 // Bot configuration as defined in .bot file
 const endpointConfig = botConfig.findServiceByNameOrId(BOT_CONFIGURATION);
@@ -89,7 +102,7 @@ conversationState = new ConversationState(memoryStorage);
 // conversationState = new ConversationState(blobStorage);
 
 // Create the main dialog.
-const bot = new EchoBot(conversationState);
+const bot = new EchoBot(conversationState, qnaServices);
 
 // Create HTTP server
 let server = restify.createServer();

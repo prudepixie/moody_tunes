@@ -47,6 +47,15 @@
             "resourceGroup": "wendy-bot",
             "serviceName": "moody_tunes3qb7cu",
             "id": "5"
+        },
+        {
+            "type": "qna",
+            "name": "Music Library",
+            "kbId": "536aa3f5-3255-4cc8-9ad1-b010f74a0b10",
+            "hostname": "https://test-hi.azurewebsites.net/qnamaker",
+            "endpointKey": "c8b82ae0-d226-417b-acee-5888f2cee53c",
+            "subscriptionKey": "255b11b6-a5c4-4fe3-ac0b-b12882575905",
+            "id": "6"
         }
     ],
     "padlock": "",
