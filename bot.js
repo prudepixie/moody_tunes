@@ -38,10 +38,14 @@ class LuisBot {
             const sentiment = results.luisResult.sentimentAnalysis.label;
 
             const randomVideo = videos[sentiment][Math.floor(Math.random()*videos[sentiment].length)];
+            const idx = randomVideo.indexOf('v=');
+            const videoId = randomVideo.substring(idx + 2, randomVideo.length);
+            const videoPreview = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+
             const hero = MessageFactory.attachment(
                 CardFactory.heroCard(
                     '', 
-                    undefined,
+                    [videoPreview],
                     [{
                         type: ActionTypes.OpenUrl,
                         title: 'Open in Youtube',
@@ -53,7 +57,6 @@ class LuisBot {
             if (topIntent.intent !== 'None') {
                 await turnContext.sendActivity(`Here's my suggestion based on your mood, enjoy!`);
                 await turnContext.sendActivity(hero);
-                await turnContext.sendActivity(randomVideo);
             } else if (text=== 'hi' || text==='hello') {
                 await this.welcomeUserMessage(turnContext);
             } 
@@ -109,7 +112,7 @@ class LuisBot {
             )
         ));
         let userName = turnContext.activity.from.name;
-        const reply = MessageFactory.suggestedActions(['Happy', 'Depressed', 'Angry', 'Splendid'], `Hi, I am Moody Tunes bot. I can suggest a song depending on your mood.. Start by choosing a mood:`);
+        const reply = MessageFactory.suggestedActions(['Happy', 'Depressed', 'Angry', 'Splendid'], `Hi ${userName}, I am Moody Tunes bot. I can suggest a song depending on your mood.. Start by choosing a mood:`);
         await turnContext.sendActivity(reply);
     }
 }
