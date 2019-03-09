@@ -6,7 +6,7 @@ const path = require('path');
 const restify = require('restify');
 
 // Import required bot services. See https://aka.ms/bot-services to learn more about the different parts of a bot.
-const { BotFrameworkAdapter, ConversationState, MemoryStorage } = require('botbuilder');
+const { BotFrameworkAdapter, ConversationState, MemoryStorage, UserState } = require('botbuilder');
 // Import required bot configuration.
 const { BotConfiguration } = require('botframework-config');
 
@@ -82,7 +82,8 @@ adapter.onTurnError = async (context, error) => {
 
 // Define a state store for your bot. See https://aka.ms/about-bot-state to learn more about using MemoryStorage.
 // A bot requires a state store to persist the dialog and user state between messages.
-let conversationState;
+let conversationState,
+    userState;
 
 // For local development, in-memory storage is used.
 // CAUTION: The Memory Storage used here is for local bot debugging only. When the bot
@@ -90,10 +91,12 @@ let conversationState;
 const memoryStorage = new MemoryStorage();
 conversationState = new ConversationState(memoryStorage);
 
+userState = new UserState(memoryStorage);
+
 // Create the LuisBot.
 let bot;
 try {
-    bot = new LuisBot(luisApplication, luisPredictionOptions);
+    bot = new LuisBot(luisApplication, luisPredictionOptions, userState);
 } catch (err) {
     console.error(`[botInitializationError]: ${ err }`);
     process.exit();
@@ -104,7 +107,7 @@ let server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function() {
     console.log(`\n${ server.name } listening to ${ server.url }.`);
     console.log(`\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator.`);
-    console.log(`\nTo talk to your bot, open nlp-with-luis.bot file in the emulator.`);
+    console.log(`\nTo talk to your bot, open moody_tunes.bot file in the emulator.`);
 });
 
 // Listen for incoming requests.
