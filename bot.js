@@ -1,57 +1,98 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+const { ActionTypes, ActivityTypes, CardFactory, MessageFactory } = require('botbuilder');
+const { LuisRecognizer } = require('botbuilder-ai');
+const { videos } = require('./resources/videoLibrary.js');
 
-// bot.js is your bot's main entry point to handle incoming activities.
-
-const { ActivityTypes } = require('botbuilder');
-
-// Turn counter property
-const TURN_COUNTER_PROPERTY = 'turnCounterProperty';
-
-class EchoBot {
+/**
+ * A simple bot that responds to utterances with answers from the Language Understanding (LUIS) service.
+ * If an answer is not found for an utterance, the bot responds with help.
+ */
+class LuisBot {
     /**
-     *
-     * @param {ConversationState} conversation state object
+     * The LuisBot constructor requires one argument (`application`) which is used to create an instance of `LuisRecognizer`.
+     * @param {LuisApplication} luisApplication The basic configuration needed to call LUIS. In this sample the configuration is retrieved from the .bot file.
+     * @param {LuisPredictionOptions} luisPredictionOptions (Optional) Contains additional settings for configuring calls to LUIS.
      */
-    constructor(conversationState, qnaServices) {
-        // Creates a new state accessor property.
-        // See https://aka.ms/about-bot-state-accessors to learn more about the bot state and state accessors
-        this.countProperty = conversationState.createProperty(TURN_COUNTER_PROPERTY);
-        this.conversationState = conversationState;
-        this.qnaServices = qnaServices;
+    constructor(application, luisPredictionOptions, includeApiResults) {
+        this.luisRecognizer = new LuisRecognizer(application, luisPredictionOptions, true);
     }
+
     /**
-     *
-     * Use onTurn to handle an incoming activity, received from a user, process it, and reply as needed
-     *
-     * @param {TurnContext} on turn context object.
+     * Every conversation turn calls this method.
+     * @param {TurnContext} turnContext Contains all the data needed for processing the conversation turn.
      */
     async onTurn(turnContext) {
-        // Handle message activity type. User's responses via text or speech or card interactions flow back to the bot as Message activity.
-        // Message activities may contain text, speech, interactive cards, and binary or unknown attachments.
-        // see https://aka.ms/about-bot-activity-message to learn more about the message and other activity types
-        if (turnContext.activity.type === ActivityTypes.Message) {
-            for (let i = 0; i < this.qnaServices.length; i++) {
-                // Perform a call to the QnA Maker service to retrieve matching Question and Answer pairs.
-                const qnaResults = await this.qnaServices[i].getAnswers(turnContext);
-    
-                // If an answer was received from QnA Maker, send the answer back to the user and exit.
-                if (qnaResults[0]) {
-                    await turnContext.sendActivity(qnaResults[0].answer);
-                    return;
+        // By checking the incoming Activity type, the bot only calls LUIS in appropriate cases.
+
+        switch (turnContext.activity.type) {
+        case ActivityTypes.Message:
+                // Perform a call to LUIS to retrieve results for the user's message.
+            const results = await this.luisRecognizer.recognize(turnContext);
+
+            // Since the LuisRecognizer was configured to include the raw results, get the `topScoringIntent` as specified by LUIS.
+            const topIntent = results.luisResult.topScoringIntent;
+            const sentiment = results.luisResult.sentimentAnalysis.label;
+
+            const randomVideo = videos[sentiment][Math.floor(Math.random()*videos[sentiment].length)];
+            const videoCard = MessageFactory.attachment(
+                CardFactory.videoCard(
+                    null,
+                    [randomVideo],
+                    [{
+                        type: ActionTypes.OpenUrl,
+                        title: 'Open in Youtube',
+                        value: randomVideo
+                    }]
+                )
+            );
+
+            if (topIntent.intent !== 'None') {
+                await turnContext.sendActivity(`Here's my suggestion based on your mood, enjoy!`);
+                await turnContext.sendActivity(videoCard);
+                
+            } else {
+                // If the top scoring intent was "None" tell the user no valid intents were found and provide help.
+                await turnContext.sendActivity(`I can't understand.`);
+            }
+            break;
+        case ActivityTypes.ConversationUpdate:
+            // Welcome user.
+            await this.welcomeUser(turnContext);
+            break;
+        default:
+            // Handle other activity types as needed.
+            break;
+        }
+    }
+
+     /**
+     * Async helper method to welcome all users that have joined the conversation.
+     *
+     * @param {TurnContext} context conversation context object
+     *
+     */
+    async welcomeUser(turnContext) {
+        // Do we have any new members added to the conversation?
+        if (turnContext.activity.membersAdded.length !== 0) {
+            // Iterate over all new members added to the conversation
+            for (var idx in turnContext.activity.membersAdded) {
+                // Greet anyone that was not the target (recipient) of this message
+                // 'bot' is the recipient for events from the channel,
+                // turnContext.activity.membersAdded === turnContext.activity.recipient.Id indicates the
+                // bot was added to the conversation.
+                if (turnContext.activity.membersAdded[idx].id !== turnContext.activity.recipient.id) {
+                    // Welcome user.
+                    await turnContext.sendActivity(MessageFactory.attachment(
+                        CardFactory.animationCard(
+                            'Welcome to Moody Tunes',
+                            ['https://i.pinimg.com/originals/34/f0/9f/34f09f59e193f07cda58088545859a88.gif'],
+                        )
+                    ));
+                    var reply = MessageFactory.suggestedActions(['Happy', 'Depressed', 'Angry', 'Splendid'], 'Hi, I am Moody Tunes bot. I can suggest a song depending on your mood.. Start by choosing a mood:');
+                    await turnContext.sendActivity(reply);
                 }
             }
-            // If no answers were returned from QnA Maker, reply with help.
-            await turnContext.sendActivity('No QnA Maker answers were found. '
-                + 'This example uses a QnA Maker Knowledge Base that focuses on smart light bulbs. '
-                + `Ask the bot questions like "Why won't it turn on?" or "I need help."`);
-        } else {
-            // Generic handler for all other activity types.
-            await turnContext.sendActivity(`[${ turnContext.activity.type } event detected]`);
         }
-        // Save state changes
-        await this.conversationState.saveChanges(turnContext);
     }
 }
 
-exports.EchoBot = EchoBot;
+module.exports.LuisBot = LuisBot;

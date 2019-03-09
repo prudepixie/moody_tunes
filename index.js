@@ -4,14 +4,13 @@
 // Import required packages
 const path = require('path');
 const restify = require('restify');
-const { QnAMaker } = require('botbuilder-ai');
 
 // Import required bot services. See https://aka.ms/bot-services to learn more about the different parts of a bot.
 const { BotFrameworkAdapter, ConversationState, MemoryStorage } = require('botbuilder');
 // Import required bot configuration.
 const { BotConfiguration } = require('botframework-config');
 
-const { EchoBot } = require('./bot');
+const { LuisBot } = require('./bot');
 
 // Read botFilePath and botFileSecret from .env file
 // Note: Ensure you have a .env file and include botFilePath and botFileSecret.
@@ -39,21 +38,26 @@ const DEV_ENVIRONMENT = 'development';
 // Define name of the endpoint configuration section from the .bot file
 const BOT_CONFIGURATION = (process.env.NODE_ENV || DEV_ENVIRONMENT);
 
-const qnaServices = [];
-botConfig.services.forEach(s => {
-    if (s.type == 'qna') {
-        const endpoint = {
-            knowledgeBaseId: s.kbId,
-            endpointKey: s.endpointKey,
-            host: s.hostname
-        };
-        const options = {};
-        qnaServices.push(new QnAMaker(endpoint, options));
-    }
-});
-// Get bot endpoint configuration by service name
-// Bot configuration as defined in .bot file
+// Language Understanding (LUIS) service name as defined in the .bot file.YOUR_LUIS_APP_NAME is "LuisBot" in the JavaScript code.
+const LUIS_CONFIGURATION = 'LuisBot';
+
+// Get endpoint and LUIS configurations by service name.
 const endpointConfig = botConfig.findServiceByNameOrId(BOT_CONFIGURATION);
+const luisConfig = botConfig.findServiceByNameOrId(LUIS_CONFIGURATION);
+
+// Map the contents to the required format for `LuisRecognizer`.
+const luisApplication = {
+    applicationId: luisConfig.appId,
+    endpointKey: luisConfig.subscriptionKey || luisConfig.authoringKey,
+    azureRegion: luisConfig.region
+};
+
+// Create configuration for LuisRecognizer's runtime behavior.
+const luisPredictionOptions = {
+    includeAllIntents: true,
+    log: true,
+    staging: false
+};
 
 // Create bot adapter.
 // See https://aka.ms/about-bot-adapter to learn more about bot adapter.
@@ -86,36 +90,26 @@ let conversationState;
 const memoryStorage = new MemoryStorage();
 conversationState = new ConversationState(memoryStorage);
 
-// CAUTION: You must ensure your product environment has the NODE_ENV set
-//          to use the Azure Blob storage or Azure Cosmos DB providers.
-// const { BlobStorage } = require('botbuilder-azure');
-// Storage configuration name or ID from .bot file
-// const STORAGE_CONFIGURATION_ID = '<STORAGE-NAME-OR-ID-FROM-BOT-FILE>';
-// // Default container name
-// const DEFAULT_BOT_CONTAINER = 'botstate';
-// // Get service configuration
-// const blobStorageConfig = botConfig.findServiceByNameOrId(STORAGE_CONFIGURATION_ID);
-// const blobStorage = new BlobStorage({
-//     containerName: (blobStorageConfig.container || DEFAULT_BOT_CONTAINER),
-//     storageAccountOrConnectionString: blobStorageConfig.connectionString,
-// });
-// conversationState = new ConversationState(blobStorage);
+// Create the LuisBot.
+let bot;
+try {
+    bot = new LuisBot(luisApplication, luisPredictionOptions);
+} catch (err) {
+    console.error(`[botInitializationError]: ${ err }`);
+    process.exit();
+}
 
-// Create the main dialog.
-const bot = new EchoBot(conversationState, qnaServices);
-
-// Create HTTP server
+// Create HTTP server.
 let server = restify.createServer();
 server.listen(process.env.port || process.env.PORT || 3978, function() {
-    console.log(`\n${ server.name } listening to ${ server.url }`);
-    console.log(`\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator`);
-    console.log(`\nTo talk to your bot, open echoBot-with-counter.bot file in the Emulator`);
+    console.log(`\n${ server.name } listening to ${ server.url }.`);
+    console.log(`\nGet Bot Framework Emulator: https://aka.ms/botframework-emulator.`);
+    console.log(`\nTo talk to your bot, open nlp-with-luis.bot file in the emulator.`);
 });
 
-// Listen for incoming activities and route them to your bot main dialog.
+// Listen for incoming requests.
 server.post('/api/messages', (req, res) => {
-    adapter.processActivity(req, res, async (context) => {
-        // route to main dialog.
-        await bot.onTurn(context);
+    adapter.processActivity(req, res, async(turnContext) => {
+        await bot.onTurn(turnContext);
     });
 });

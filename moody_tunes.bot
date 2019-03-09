@@ -56,6 +56,16 @@
             "endpointKey": "c8b82ae0-d226-417b-acee-5888f2cee53c",
             "subscriptionKey": "255b11b6-a5c4-4fe3-ac0b-b12882575905",
             "id": "6"
+        },
+        {
+            "type": "luis",
+            "name": "LuisBot",
+            "appId": "4123c0e5-1374-423a-9b37-6114628cfebf",
+            "version": "0.1",
+            "authoringKey": "657535f60e1642fe90f1350857df6a96",
+            "subscriptionKey": "657535f60e1642fe90f1350857df6a96",
+            "region": "westus",
+            "id": "158"
         }
     ],
     "padlock": "",
