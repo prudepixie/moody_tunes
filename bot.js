@@ -52,8 +52,8 @@ class LuisBot {
             let text = turnContext.activity.text.toLowerCase();
             if (topIntent.intent !== 'None') {
                 await turnContext.sendActivity(`Here's my suggestion based on your mood, enjoy!`);
-                await turnContext.sendActivity(randomVideo);
                 await turnContext.sendActivity(hero);
+                await turnContext.sendActivity(randomVideo);
             } else if (text=== 'hi' || text==='hello') {
                 await this.welcomeUserMessage(turnContext);
             } 
