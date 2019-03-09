@@ -38,10 +38,10 @@ class LuisBot {
             const sentiment = results.luisResult.sentimentAnalysis.label;
 
             const randomVideo = videos[sentiment][Math.floor(Math.random()*videos[sentiment].length)];
-            const videoCard = MessageFactory.attachment(
-                CardFactory.videoCard(
-                    null,
-                    [randomVideo],
+            const hero = MessageFactory.attachment(
+                CardFactory.heroCard(
+                    '', 
+                    undefined,
                     [{
                         type: ActionTypes.OpenUrl,
                         title: 'Open in Youtube',
@@ -52,7 +52,8 @@ class LuisBot {
             let text = turnContext.activity.text.toLowerCase();
             if (topIntent.intent !== 'None') {
                 await turnContext.sendActivity(`Here's my suggestion based on your mood, enjoy!`);
-                await turnContext.sendActivity(videoCard);
+                await turnContext.sendActivity(randomVideo);
+                await turnContext.sendActivity(hero);
             } else if (text=== 'hi' || text==='hello') {
                 await this.welcomeUserMessage(turnContext);
             } 
