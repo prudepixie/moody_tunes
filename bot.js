@@ -27,7 +27,7 @@ class LuisBot {
      */
     async onTurn(turnContext) {
         // By checking the incoming Activity type, the bot only calls LUIS in appropriate cases.
-
+        
         switch (turnContext.activity.type) {
         case ActivityTypes.Message:
                 // Perform a call to LUIS to retrieve results for the user's message.
@@ -49,11 +49,12 @@ class LuisBot {
                     }]
                 )
             );
-
+            let text = turnContext.activity.text.toLowerCase();
             if (topIntent.intent !== 'None') {
                 await turnContext.sendActivity(`Here's my suggestion based on your mood, enjoy!`);
                 await turnContext.sendActivity(videoCard);
-                
+            } else if (text=== 'hi' || text==='hello') {
+                await this.welcomeUserMessage(turnContext);
             } 
             break;
         case ActivityTypes.ConversationUpdate:
@@ -62,7 +63,6 @@ class LuisBot {
             break;
         default:
             // Handle other activity types as needed.
-            await this.welcomeUser(turnContext);
             break;
         }
     }
@@ -97,6 +97,19 @@ class LuisBot {
                 }
             }
         }
+    }
+
+    async welcomeUserMessage(turnContext) {
+        const gif = 'https://i.pinimg.com/originals/34/f0/9f/34f09f59e193f07cda58088545859a88.gif';
+        await turnContext.sendActivity(MessageFactory.attachment(
+            CardFactory.animationCard(
+                'Welcome to Moody Tunes',
+                [gif],
+            )
+        ));
+        let userName = turnContext.activity.from.name;
+        const reply = MessageFactory.suggestedActions(['Happy', 'Depressed', 'Angry', 'Splendid'], `Hi, I am Moody Tunes bot. I can suggest a song depending on your mood.. Start by choosing a mood:`);
+        await turnContext.sendActivity(reply);
     }
 }
 
