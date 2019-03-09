@@ -37,10 +37,10 @@ class LuisBot {
             const topIntent = results.luisResult.topScoringIntent;
             const sentiment = results.luisResult.sentimentAnalysis.label;
 
-            const randomVideo = videos[sentiment][Math.floor(Math.random()*videos[sentiment].length)];
-            const idx = randomVideo.indexOf('v=');
-            const videoId = randomVideo.substring(idx + 2, randomVideo.length);
-            const videoPreview = `https://img.youtube.com/vi/${videoId}/0.jpg`;
+            let randomVideo = videos[sentiment][Math.floor(Math.random()*videos[sentiment].length)];
+            let idx = randomVideo.indexOf('v=');
+            let videoId = randomVideo.substring(idx + 2, randomVideo.length);
+            let videoPreview = `https://img.youtube.com/vi/${videoId}/0.jpg`;
 
             const hero = MessageFactory.attachment(
                 CardFactory.heroCard(
